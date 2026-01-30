@@ -2,10 +2,13 @@ const express = require('express');
 const cors = require('cors');
 require('dotenv').config();
 
+const routes = require('./routes');
+const { logger } = require('./middleware/logger');
+
 const app = express();
 const PORT = process.env.PORT || 5000;
 
-// Middleware
+// Настройка CORS
 app.use(cors({
   origin: ['http://localhost:3000', 'http://localhost:5000', 'http://127.0.0.1:3000'],
   credentials: true,
@@ -15,8 +18,8 @@ app.use(cors({
 
 app.use(express.json());
 
-// Импорт роутов
-const routes = require('./routes');
+// Middleware для логирования запросов
+app.use(logger);
 
 // Подключение роутов
 app.use('/', routes);
@@ -40,14 +43,8 @@ app.use((err, req, res, next) => {
 });
 
 // Запуск сервера
-const startServer = async () => {
-  try {
-    // Инициализация БД
-    const { initDatabase } = require('./utils/database');
-    await initDatabase();
-
-    app.listen(PORT, '0.0.0.0', () => {
-      console.log(`
+app.listen(PORT, '0.0.0.0', () => {
+  console.log(`
 🚀 Сервер запущен на порту ${PORT}
 🔗 Основные URL:
    http://localhost:${PORT}
@@ -57,15 +54,17 @@ const startServer = async () => {
 📝 Отзывы: http://localhost:${PORT}/api/reviews
 🔐 Админ панель: http://localhost:3000/admin
 
-👤 Админ данные:
-   Email: daria.gritsaenko2000@gmail.com
-   Пароль: daria
-      `);
-    });
-  } catch (error) {
-    console.error('\n❌ Ошибка запуска сервера:', error.message);
-    process.exit(1);
-  }
-};
+👤 Админ данные (можно использовать любой вариант):
+   Вариант 1:
+     Username/Email: daria
+     Пароль: daria
 
-startServer();
+   Вариант 2:
+     Username/Email: daria.gritsaenko2000@gmail.com
+     Пароль: daria
+
+   Вариант 3:
+     Username/Email: admin
+     Пароль: admin123
+      `);
+});

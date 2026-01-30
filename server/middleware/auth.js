@@ -1,7 +1,10 @@
-const { ALLOWED_ADMIN_EMAILS } = require('../config/constants');
+const { ALLOWED_ADMIN_EMAILS } = require('../config/database');
 
+// Middleware для аутентификации админа
 const authenticate = (req, res, next) => {
   const token = req.headers.authorization?.split(' ')[1];
+  
+  console.log('Проверка аутентификации, токен:', token ? 'присутствует' : 'отсутствует');
   
   if (!token) {
     return res.status(401).json({
@@ -10,11 +13,16 @@ const authenticate = (req, res, next) => {
     });
   }
   
+  // Проверяем, что токен валидный и начинается с admin_token_
   if (token.startsWith('admin_token_')) {
     try {
+      // Извлекаем email из токена
       const tokenData = token.split('_').slice(2).join('_');
       const decoded = JSON.parse(Buffer.from(tokenData, 'base64').toString());
       
+      console.log('Декодированный токен:', decoded);
+      
+      // Проверяем, что email разрешен для админки
       if (ALLOWED_ADMIN_EMAILS.includes(decoded.email)) {
         req.user = { 
           username: decoded.username || 'admin', 
@@ -43,4 +51,6 @@ const authenticate = (req, res, next) => {
   }
 };
 
-module.exports = { authenticate };
+module.exports = {
+  authenticate
+};
